@@ -125,13 +125,13 @@ script=$(join_with ' && ' "${COMMANDS[@]}")
 IFS=','; read -ra HOSTS <<< "$PLUGIN_HOSTS"
 result=0
 for host in "${HOSTS[@]}"; do
-    echo $(printf "%s" "$ $expr $USER@$host::$PLUGIN_TARGET ...")
+    echo $(printf "%s" "$ $expr $USER@$host::$PLUGIN_TARGET")
     eval "$expr $USER@$host:$PLUGIN_TARGET"
     result=$(($result+$?))
     if [ "$result" -gt "0" ]; then exit $result; fi
     if [ -n "$PLUGIN_SCRIPT" ]; then
-        echo $(printf "%s" "$ ssh -p $PORT $USER@$host ...")
-        echo $(printf "%s" " > $script ...")
+        echo $(printf "%s" "$ ssh -p $PORT $USER@$host")
+        echo $(printf "%s" " > $script")
         eval "ssh -p $PORT $USER@$host '$script'"
         result=$(($result+$?))
         echo $(printf "%s" "$ ssh -p $PORT $USER@$host result: $?")
