@@ -36,9 +36,17 @@ SSH_KEY=$RSYNC_KEY
 if [ -z "$RSYNC_KEY" ]; then
     if [ -z "$PLUGIN_KEY" ]; then
         echo "No private key specified!"
-        exit 1
+     #   exit 1
     fi
     SSH_KEY=$PLUGIN_KEY
+fi
+
+PASSWORD_FILE=$PLUGIN_PASSWORD_FILE
+
+if [ -z "$PLUGIN_PASSWORD_FILE" ]; then
+    if [ -z "$PLUGIN_KEY" ]; then
+        echo "At least specified password_file or key"
+    fi
 fi
 
 if [ -z "$PLUGIN_ARGS" ]; then
@@ -58,7 +66,13 @@ if [[ -n "$PLUGIN_DELETE" && "$PLUGIN_DELETE" == "true" ]]; then
     expr="$expr --del"
 fi
 
-expr="$expr -e 'ssh -p $PORT -o UserKnownHostsFile=/dev/null -o LogLevel=quiet -o StrictHostKeyChecking=no'"
+if [ -n "$PLUGIN_KEY" ]; then
+    expr="$expr -e 'ssh -p $PORT -o UserKnownHostsFile=/dev/null -o LogLevel=quiet -o StrictHostKeyChecking=no'"
+fi
+
+if [ -n "$PLUGIN_PASSWORD_FILE" ]; then
+    expr="$expr -P --password-file=$PASSWORD_FILE"
+fi
 
 # Include
 IFS=','; read -ra INCLUDE <<< "$PLUGIN_INCLUDE"
@@ -111,7 +125,7 @@ script=$(join_with ' && ' "${COMMANDS[@]}")
 IFS=','; read -ra HOSTS <<< "$PLUGIN_HOSTS"
 result=0
 for host in "${HOSTS[@]}"; do
-    echo $(printf "%s" "$ $expr $USER@$host:$PLUGIN_TARGET ...")
+    echo $(printf "%s" "$ $expr $USER@$host::$PLUGIN_TARGET ...")
     eval "$expr $USER@$host:$PLUGIN_TARGET"
     result=$(($result+$?))
     if [ "$result" -gt "0" ]; then exit $result; fi
