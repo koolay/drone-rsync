@@ -32,21 +32,10 @@ if [ -z "$RSYNC_USER" ]; then
     fi
 fi
 
-SSH_KEY=$RSYNC_KEY
-if [ -z "$RSYNC_KEY" ]; then
-    if [ -z "$PLUGIN_KEY" ]; then
-        echo "No private key specified!"
-     #   exit 1
-    fi
-    SSH_KEY=$PLUGIN_KEY
-fi
-
 PASSWORD_FILE=$PLUGIN_PASSWORD_FILE
 
 if [ -z "$PLUGIN_PASSWORD_FILE" ]; then
-    if [ -z "$PLUGIN_KEY" ]; then
-        echo "At least specified password_file or key"
-    fi
+   echo "At least specified password_file"
 fi
 
 if [ -z "$PLUGIN_ARGS" ]; then
@@ -64,10 +53,6 @@ fi
 
 if [[ -n "$PLUGIN_DELETE" && "$PLUGIN_DELETE" == "true" ]]; then
     expr="$expr --del"
-fi
-
-if [ -n "$PLUGIN_KEY" ]; then
-    expr="$expr -e 'ssh -p $PORT -o UserKnownHostsFile=/dev/null -o LogLevel=quiet -o StrictHostKeyChecking=no'"
 fi
 
 if [ -n "$PLUGIN_PASSWORD_FILE" ]; then
@@ -94,36 +79,8 @@ done
 
 expr="$expr $SOURCE"
 
-# Prepare SSH
-home="/root"
+chmod 0600 $PASSWORD_FILE
 
-mkdir -p "$home/.ssh"
-
-printf "StrictHostKeyChecking no\n" > "$home/.ssh/config"
-chmod 0700 "$home/.ssh/config"
-
-keyfile="$home/.ssh/id_rsa"
-echo "$SSH_KEY" | grep -q "ssh-ed25519"
-if [ $? -eq 0 ]; then
-    printf "Using ed25519 based key\n"
-    keyfile="$home/.ssh/id_ed25519"
-fi
-echo "$SSH_KEY" | grep -q "ecdsa-"
-if [ $? -eq 0 ]; then
-    printf "Using ecdsa based key\n"
-    keyfile="$home/.ssh/id_ecdsa"
-fi
-echo "$SSH_KEY" > $keyfile
-chmod 0600 $keyfile
-
-# Parse SSH commands
-function join_with { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"; }
-IFS=','; read -ra COMMANDS <<< "$PLUGIN_SCRIPT"
-script=$(join_with ' && ' "${COMMANDS[@]}")
-
-# debug
-ls -al $PLUGIN_PASSWORD_FILE
-cat $PLUGIN_PASSWORD_FILE
 # Run rsync
 IFS=','; read -ra HOSTS <<< "$PLUGIN_HOSTS"
 result=0
@@ -132,14 +89,6 @@ for host in "${HOSTS[@]}"; do
     eval "$expr $USER@$host:$PLUGIN_TARGET"
     result=$(($result+$?))
     if [ "$result" -gt "0" ]; then exit $result; fi
-    if [ -n "$PLUGIN_SCRIPT" ]; then
-        echo $(printf "%s" "$ ssh -p $PORT $USER@$host")
-        echo $(printf "%s" " > $script")
-        eval "ssh -p $PORT $USER@$host '$script'"
-        result=$(($result+$?))
-        echo $(printf "%s" "$ ssh -p $PORT $USER@$host result: $?")
-        if [ "$result" -gt "0" ]; then exit $result; fi
-    fi
 done
 
 exit $result
