@@ -56,7 +56,7 @@ else
 fi
 
 # Building rsync command
-expr="rsync -av $ARGS"
+expr="rsync -azP $ARGS"
 
 if [[ -n "$PLUGIN_RECURSIVE" && "$PLUGIN_RECURSIVE" == "true" ]]; then
     expr="$expr -r"
@@ -71,7 +71,7 @@ if [ -n "$PLUGIN_KEY" ]; then
 fi
 
 if [ -n "$PLUGIN_PASSWORD_FILE" ]; then
-    expr="$expr -P --password-file=$PASSWORD_FILE"
+    expr="$expr --password-file=$PASSWORD_FILE"
 fi
 
 # Include
@@ -121,6 +121,9 @@ function join_with { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/
 IFS=','; read -ra COMMANDS <<< "$PLUGIN_SCRIPT"
 script=$(join_with ' && ' "${COMMANDS[@]}")
 
+# debug
+ls -al $PLUGIN_PASSWORD_FILE
+cat $PLUGIN_PASSWORD_FILE
 # Run rsync
 IFS=','; read -ra HOSTS <<< "$PLUGIN_HOSTS"
 result=0
