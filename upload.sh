@@ -126,6 +126,7 @@ script=$(join_with ' && ' "${COMMANDS[@]}")
 IFS=','; read -ra HOSTS <<< "$PLUGIN_HOSTS"
 result=0
 for host in "${HOSTS[@]}"; do
+    pwd
     echo $(printf "%s" "$ $expr $USER@$host::$PLUGIN_TARGET")
     eval "$expr $USER@$host::$PLUGIN_TARGET"
     result=$(($result+$?))
