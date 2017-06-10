@@ -85,6 +85,7 @@ chmod 0600 $PASSWORD_FILE
 IFS=','; read -ra HOSTS <<< "$PLUGIN_HOSTS"
 result=0
 for host in "${HOSTS[@]}"; do
+    whoami
     echo $(printf "%s" "$ $expr $USER@$host::$PLUGIN_TARGET")
     eval "$expr $USER@$host:$PLUGIN_TARGET"
     result=$(($result+$?))
