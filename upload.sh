@@ -58,7 +58,7 @@ if [[ -n "$PLUGIN_DELETE" && "$PLUGIN_DELETE" == "true" ]]; then
     expr="$expr --del"
 fi
 
-expr="$expr -e 'ssh -p $PORT -o UserKnownHostsFile=/dev/null -o LogLevel=quiet -o StrictHostKeyChecking=no'"
+expr="$expr -e 'ssh -vvv -p $PORT -o UserKnownHostsFile=/dev/null -o LogLevel=quiet -o StrictHostKeyChecking=no'"
 
 # Include
 IFS=','; read -ra INCLUDE <<< "$PLUGIN_INCLUDE"
