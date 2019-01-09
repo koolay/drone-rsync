@@ -116,11 +116,11 @@ for host in "${HOSTS[@]}"; do
     result=$(($result+$?))
     if [ "$result" -gt "0" ]; then exit $result; fi
     if [ -n "$PLUGIN_SCRIPT" ]; then
-        echo $(printf "%s" "$ ssh -p $PORT $USER@$host ...")
+        echo $(printf "%s" "$ ssh -vvv -p $PORT $USER@$host ...")
         echo $(printf "%s" " > $script ...")
-        eval "ssh -p $PORT $USER@$host '$script'"
+        eval "ssh -vvv p $PORT $USER@$host '$script'"
         result=$(($result+$?))
-        echo $(printf "%s" "$ ssh -p $PORT $USER@$host result: $?")
+        echo $(printf "%s" "$ ssh -vvv -p $PORT $USER@$host result: $?")
         if [ "$result" -gt "0" ]; then exit $result; fi
     fi
 done
